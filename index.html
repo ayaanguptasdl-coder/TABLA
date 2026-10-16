@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VR Tabla Studio</title>
+
+    <script src="https://aframe.io/releases/1.7.0/aframe.min.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #080d19;
+            color: white;
+        }
+
+        #panel {
+            position: fixed;
+            top: 12px;
+            left: 12px;
+            width: min(360px, calc(100vw - 24px));
+            max-height: calc(100vh - 24px);
+            overflow-y: auto;
+            z-index: 10;
+            padding: 18px;
+            border: 1px solid #53617e;
+            border-radius: 18px;
+            background: rgba(8, 13, 28, 0.94);
+            box-shadow: 0 0 25px #00bfff25;
+        }
+
+        h1 {
+            margin: 0 0 5px;
+            color: #65e7ff;
+            font-size: 25px;
+        }
+
+        .subtitle {
+            color: #b8c8e8;
+            font-size: 13px;
+            margin-bottom: 14px;
+        }
+
+        .section-title {
+            margin: 14px 0 8px;
+            color: #ffcf75;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 7px;
+        }
+
+        button {
+            padding: 10px 5px;
+            border: 1px solid #5a7199;
+            border-radius: 10px;
+            color: white;
+            background: #1a2946;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #28466e;
+            border-color: #65e7ff;
+        }
+
+        button:active {
+            transform: scale(0.97);
+        }
+
+        .wide {
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+        }
+
+        #status {
+            color: #7df5ba;
+            font-size: 12px;
+            margin-top: 10px;
+            line-height: 1.5;
+        }
+
+        #help {
+            font-size: 12px;
+            color: #c1cce0;
+            line-height: 1.6;
+        }
+
+        .vr-note {
+            color: #a6dfff;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 500px) {
+            #panel {
+                padding: 13px;
+            }
+
+            h1 {
+                font-size: 21px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="panel">
+        <h1>🥁 VR Tabla Studio</h1>
+        <div class="subtitle">Play • Practise • Experience in 3D</div>
+
+        <div class="section-title">PLAY TABLA BOLS</div>
+        <div class="buttons">
+            <button data-bol="NA">Na (G)</button>
+            <button data-bol="TIN">Tin (H)</button>
+            <button data-bol="TUN">Tun (Space)</button>
+            <button data-bol="TA">Ta (J)</button>
+            <button data-bol="GE">Ge (K)</button>
+            <button data-bol="DHA">Dha (D)</button>
+            <button data-bol="DHIN">Dhin (F)</button>
+            <button data-bol="DHA">Dha × 2</button>
+            <button data-bol="GE">Bayan</button>
+        </div>
+
+        <div class="section-title">VOLUME</div>
+        <label for="volume">Master volume: <span id="volumeValue">70%</span></label>
+        <input id="volume" type="range" min="0" max="100" value="70">
+
+        <div class="section-title">RHYTHM PRACTICE</div>
+        <button class="wide" id="playRhythm">▶ Play Teen Taal</button>
+        <button class="wide" id="stopRhythm">■ Stop Rhythm</button>
+
+        <div class="section-title">VR CONTROLS</div>
+        <button class="wide" id="vrButton">🥽 Enter VR</button>
+        <div class="vr-note">
+            In VR, point a controller laser at a drum and press its trigger.
+            On your laptop, use the buttons or keyboard.
+        </div>
+
+        <div class="section-title">KEYBOARD HELP</div>
+        <div id="help">
+            G = Na · H = Tin · Space = Tun<br>
+            J = Ta · K = Ge · D = Dha · F = Dhin<br>
+            Enter = Start rhythm · Escape = Stop rhythm
+        </div>
+
+        <div id="status" role="status">Ready. Click a bol to start the audio.</div>
+    </div>
+
+    <a-scene id="scene" background="color: #080d19" renderer="colorManagement: true; antialias: true"
+        vr-mode-ui="enabled: true" webxr="optionalFeatures: local-floor">
+        <a-assets>
+            <a-mixin id="goldTrim" material="color: #e8b85c; metalness: 0.65; roughness: 0.3"></a-mixin>
+        </a-assets>
+
+        <!-- Studio -->
+        <a-plane rotation="-90 0 0" width="200" height="200" material="color: #111b30; roughness: 0.8"></a-plane>
+
+        <a-cylinder position="0 0.03 -3" radius="3.2" height="0.06"
+            material="color: #1c2a44; metalness: 0.35; roughness: 0.5"></a-cylinder>
+
+        <a-ring position="0 0.07 -3" rotation="-90 0 0" radius-inner="2.85" radius-outer="2.9"
+            material="color: #23dfff; emissive: #087d99; emissiveIntensity: 1.2"></a-ring>
+
+        <a-sky color="#080d19"></a-sky>
+
+        <!-- Lights -->
+        <a-light type="ambient" color="#b7d6ff" intensity="1.2"></a-light>
+        <a-light type="directional" position="-3 7 2" color="#ffffff" intensity="1.8"></a-light>
+        <a-light type="point" position="0 4 -3" color="#00cfff" intensity="2.2" distance="12"></a-light>
+        <a-light type="point" position="3 3 -4" color="#ff9d40" intensity="1.5" distance="9"></a-light>
+
+        <!-- Back wall decorations -->
+        <a-box position="0 2.6 -6" width="8" height="5.2" depth="0.2" material="color: #101d34; roughness: 0.9"></a-box>
+
+        <a-torus position="0 3.1 -5.85" radius="1.1" radius-tubular="0.025"
+            material="color: #27dfff; emissive: #087b99; emissiveIntensity: 1.4"></a-torus>
+
+        <a-text value="TABLA  •  RHYTHM  •  MUSIC" position="0 4.4 -5.8" align="center" width="7" color="#72eaff"
+            shader="msdf"></a-text>
+
+        <!-- Tabla platform -->
+        <a-cylinder position="0 0.24 -3" radius="1.65" height="0.35"
+            material="color: #293650; metalness: 0.4; roughness: 0.35"></a-cylinder>
+
+        <a-cylinder position="0 0.43 -3" radius="1.48" height="0.07"
+            material="color: #c18a42; metalness: 0.65; roughness: 0.28"></a-cylinder>
+
+        <!-- DAYAN: right drum -->
+        <a-entity id="dayan" position="0.68 0.48 -3">
+            <a-cylinder position="0 0.57 0" radius="0.43" height="1.08"
+                material="color: #7b3d21; roughness: 0.36; metalness: 0.12"></a-cylinder>
+
+            <a-cylinder position="0 1.12 0" radius="0.45" height="0.09" mixin="goldTrim"></a-cylinder>
+
+            <a-cylinder position="0 0.03 0" radius="0.44" height="0.09" mixin="goldTrim"></a-cylinder>
+
+            <!-- Vertical decorative bands -->
+            <a-cylinder position="0 0.68 0" radius="0.438" height="0.045"
+                material="color: #e6b15c; metalness: 0.65"></a-cylinder>
+
+            <a-cylinder position="0 0.4 0" radius="0.438" height="0.045"
+                material="color: #e6b15c; metalness: 0.65"></a-cylinder>
+
+            <!-- Drumhead -->
+            <a-cylinder id="dayanHead" class="playable clickable" data-bol="TIN" position="0 1.19 0" radius="0.415"
+                height="0.055" material="color: #f0dfb5; roughness: 0.85"></a-cylinder>
+
+            <!-- Central syahi -->
+            <a-cylinder id="dayanSyahi" class="playable clickable" data-bol="NA" position="0 1.225 0" radius="0.145"
+                height="0.012" material="color: #22252b; roughness: 0.3"></a-cylinder>
+
+            <a-ring position="0 1.226 0" radius-inner="0.17" radius-outer="0.19"
+                material="color: #b79b6a; roughness: 0.8"></a-ring>
+
+            <!-- Hit area -->
+            <a-cylinder class="playable clickable" data-bol="TA" position="0 1.24 0" radius="0.41" height="0.025"
+                material="color: #ffffff; transparent: true; opacity: 0.001"></a-cylinder>
+
+            <!-- Support -->
+            <a-cylinder position="0 -0.02 0" radius="0.45" height="0.06"
+                material="color: #151923; roughness: 0.8"></a-cylinder>
+        </a-entity>
+
+        <!-- BAYAN: left drum -->
+        <a-entity id="bayan" position="-0.72 0.48 -3">
+            <a-sphere position="0 0.43 0" radius="0.57" scale="1 0.88 1"
+                material="color: #b8bdc7; metalness: 0.65; roughness: 0.27"></a-sphere>
+
+            <a-cylinder position="0 0.75 0" radius="0.48" height="0.14"
+                material="color: #d1d6df; metalness: 0.65; roughness: 0.3"></a-cylinder>
+
+            <a-cylinder position="0 0.81 0" radius="0.49" height="0.06" mixin="goldTrim"></a-cylinder>
+
+            <a-cylinder position="0 0.85 0" radius="0.46" height="0.05"
+                material="color: #e9dfc7; roughness: 0.8"></a-cylinder>
+
+            <a-cylinder id="bayanHead" class="playable clickable" data-bol="GE" position="0 0.885 0" radius="0.44"
+                height="0.035" material="color: #efe2c2; roughness: 0.85"></a-cylinder>
+
+            <a-cylinder id="bayanSyahi" class="playable clickable" data-bol="GE" position="0 0.908 0" radius="0.14"
+                height="0.012" material="color: #24252a; roughness: 0.35"></a-cylinder>
+
+            <a-ring position="0 0.909 0" radius-inner="0.16" radius-outer="0.18" material="color: #b79b6a"></a-ring>
+
+            <a-cylinder class="playable clickable" data-bol="GE" position="0 0.92 0" radius="0.44" height="0.025"
+                material="color: #ffffff; transparent: true; opacity: 0.001"></a-cylinder>
+
+            <a-cylinder position="0 0.05 0" radius="0.49" height="0.08"
+                material="color: #222733; roughness: 0.8"></a-cylinder>
+        </a-entity>
+
+        <!-- Studio side lights -->
+        <a-cylinder position="-3 1.5 -3.5" radius="0.07" height="2.8"
+            material="color: #19d9ff; emissive: #0b7190"></a-cylinder>
+
+        <a-cylinder position="3 1.5 -3.5" radius="0.07" height="2.8"
+            material="color: #ffb44f; emissive: #99511b"></a-cylinder>
+
+        <!-- VR player -->
+        <a-entity id="rig" position="0 0 1.6">
+            <a-camera id="camera" position="0 1.6 0" look-controls wasd-controls>
+                <a-cursor id="mouseCursor" raycaster="objects: .clickable" fuse="false" color="#63eaff"
+                    material="shader: flat"
+                    geometry="primitive: ring; radiusInner: 0.008; radiusOuter: 0.014"></a-cursor>
+            </a-camera>
+
+            <a-entity id="leftHand" laser-controls="hand: left" raycaster="objects: .clickable; far: 8"
+                line="color: #63eaff; opacity: 0.8"></a-entity>
+
+            <a-entity id="rightHand" laser-controls="hand: right" raycaster="objects: .clickable; far: 8"
+                line="color: #ffbd63; opacity: 0.8"></a-entity>
+        </a-entity>
+    </a-scene>
+
+    <script>
+        const statusEl = document.getElementById("status");
+        const volumeSlider = document.getElementById("volume");
+        const volumeValue = document.getElementById("volumeValue");
+        const scene = document.getElementById("scene");
+
+        let audioContext = null;
+        let masterGain = null;
+        let rhythmTimer = null;
+        let rhythmStep = 0;
+        let rhythmRunning = false;
+
+        function setStatus(message) {
+            statusEl.textContent = message;
+        }
+
+        function ensureAudio() {
+            if (!audioContext) {
+                const AudioContextClass =
+                    window.AudioContext || window.webkitAudioContext;
+
+                if (!AudioContextClass) {
+                    setStatus("Web Audio is not supported in this browser.");
+                    return false;
+                }
+
+                audioContext = new AudioContextClass();
+                masterGain = audioContext.createGain();
+                masterGain.gain.value = Number(volumeSlider.value) / 100;
+                masterGain.connect(audioContext.destination);
+            }
+
+            if (audioContext.state === "suspended") {
+                audioContext.resume();
+            }
+
+            return true;
+        }
+
+        volumeSlider.addEventListener("input", () => {
+            volumeValue.textContent = volumeSlider.value + "%";
+
+            if (masterGain && audioContext) {
+                masterGain.gain.setTargetAtTime(
+                    Number(volumeSlider.value) / 100,
+                    audioContext.currentTime,
+                    0.02
+                );
+            }
+        });
+
+        // A short synthesized tone with a fast, natural decay.
+        function tone(frequency, duration, volume, type = "sine") {
+            if (!ensureAudio()) return;
+
+            const now = audioContext.currentTime;
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+
+            osc.type = type;
+            osc.frequency.setValueAtTime(frequency, now);
+            osc.frequency.exponentialRampToValueAtTime(
+                Math.max(35, frequency * 0.55),
+                now + duration
+            );
+
+            gain.gain.setValueAtTime(0.0001, now);
+            gain.gain.exponentialRampToValueAtTime(
+                Math.max(0.0002, volume),
+                now + 0.008
+            );
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+            osc.connect(gain);
+            gain.connect(masterGain);
+            osc.start(now);
+            osc.stop(now + duration + 0.03);
+        }
+
+        // Noise adds a soft percussive texture to the synthesized sound.
+        function noiseHit(duration = 0.09, volume = 0.12) {
+            if (!ensureAudio()) return;
+
+            const length = Math.floor(audioContext.sampleRate * duration);
+            const buffer = audioContext.createBuffer(
+                1, length, audioContext.sampleRate
+            );
+            const data = buffer.getChannelData(0);
+
+            for (let i = 0; i < length; i++) {
+                data[i] = (Math.random() * 2 - 1) * (1 - i / length);
+            }
+
+            const source = audioContext.createBufferSource();
+            const filter = audioContext.createBiquadFilter();
+            const gain = audioContext.createGain();
+
+            source.buffer = buffer;
+            filter.type = "lowpass";
+            filter.frequency.value = 3200;
+            gain.gain.setValueAtTime(volume, audioContext.currentTime);
+            gain.gain.exponentialRampToValueAtTime(
+                0.0001, audioContext.currentTime + duration
+            );
+
+            source.connect(filter);
+            filter.connect(gain);
+            gain.connect(masterGain);
+            source.start();
+        }
+
+        const bolSounds = {
+            NA: () => {
+                tone(430, 0.15, 0.34, "triangle");
+                tone(790, 0.075, 0.13, "sine");
+                noiseHit(0.055, 0.045);
+            },
+
+            TIN: () => {
+                tone(720, 0.32, 0.32, "sine");
+                tone(1090, 0.18, 0.12, "triangle");
+                noiseHit(0.045, 0.025);
+            },
+
+            TUN: () => {
+                tone(270, 0.3, 0.38, "sine");
+                tone(390, 0.18, 0.09, "triangle");
+            },
+
+            TA: () => {
+                tone(350, 0.12, 0.3, "triangle");
+                noiseHit(0.075, 0.11);
+            },
+
+            GE: () => {
+                tone(115, 0.3, 0.48, "sine");
+                tone(165, 0.2, 0.18, "triangle");
+                noiseHit(0.06, 0.07);
+            },
+
+            DHA: () => {
+                bolSounds.NA();
+                bolSounds.GE();
+            },
+
+            DHIN: () => {
+                tone(530, 0.23, 0.25, "sine");
+                tone(180, 0.28, 0.25, "sine");
+                tone(860, 0.12, 0.12, "triangle");
+                noiseHit(0.055, 0.055);
+            }
+        };
+
+        function animateHead(bol) {
+            const headIds = bol === "GE"
+                ? ["bayanHead", "bayanSyahi"]
+                : ["dayanHead", "dayanSyahi"];
+
+            headIds.forEach((id) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+
+                const original = el.getAttribute("position");
+                if (!original) return;
+
+                const baseY = original.y;
+                el.setAttribute("animation__hit", {
+                    property: "position",
+                    from: `${original.x} ${baseY} ${original.z}`,
+                    to: `${original.x} ${baseY - 0.025} ${original.z}`,
+                    dur: 65,
+                    dir: "alternate",
+                    loop: 1,
+                    easing: "easeOutQuad"
+                });
+            });
+
+            // Quick light pulse in the studio.
+            const ring = document.querySelector("a-ring");
+            if (ring) {
+                ring.setAttribute("animation__pulse", {
+                    property: "scale",
+                    from: "1 1 1",
+                    to: "1.06 1.06 1.06",
+                    dur: 120,
+                    dir: "alternate",
+                    loop: 1
+                });
+            }
+        }
+
+        function playBol(bol) {
+            if (!bolSounds[bol]) return;
+
+            ensureAudio();
+            bolSounds[bol]();
+            animateHead(bol);
+            setStatus("Playing bol: " + bol);
+        }
+
+        // Clickable 3D drum surfaces.
+        document.querySelectorAll(".playable").forEach((el) => {
+            el.addEventListener("click", () => {
+                playBol(el.dataset.bol || "NA");
+            });
+        });
+
+        // Interface buttons.
+        document.querySelectorAll("[data-bol]").forEach((button) => {
+            if (button.tagName !== "BUTTON") return;
+            button.addEventListener("click", () => {
+                playBol(button.dataset.bol);
+            });
+        });
+
+        // Teen Taal: 16 beats, four groups of four.
+        // This is a simple practice pattern, not a full traditional lesson.
+        const teenTaal = [
+            "DHA", "DHIN", "DHIN", "DHA",
+            "DHA", "DHIN", "DHIN", "DHA",
+            "DHA", "TIN", "TIN", "TA",
+            "TA", "DHIN", "DHIN", "DHA"
+        ];
+
+        function stopRhythm() {
+            rhythmRunning = false;
+            if (rhythmTimer !== null) {
+                clearInterval(rhythmTimer);
+                rhythmTimer = null;
+            }
+            setStatus("Rhythm stopped.");
+        }
+
+        function startRhythm() {
+            stopRhythm();
+            if (!ensureAudio()) return;
+
+            rhythmStep = 0;
+            rhythmRunning = true;
+            setStatus("Playing Teen Taal practice pattern…");
+
+            const bpm = 100;
+            const interval = 60000 / bpm;
+
+            const tick = () => {
+                if (!rhythmRunning) return;
+
+                const bol = teenTaal[rhythmStep];
+                playBol(bol);
+                setStatus(
+                    "Teen Taal • Beat " + (rhythmStep + 1) + "/16 • " + bol
+                );
+
+                rhythmStep = (rhythmStep + 1) % teenTaal.length;
+            };
+
+            tick();
+            rhythmTimer = setInterval(tick, interval);
+        }
+
+        document.getElementById("playRhythm").addEventListener(
+            "click", startRhythm
+        );
+
+        document.getElementById("stopRhythm").addEventListener(
+            "click", stopRhythm
+        );
+
+        document.getElementById("vrButton").addEventListener("click", async () => {
+            try {
+                if (scene.is("vr-mode")) {
+                    scene.exitVR();
+                } else {
+                    await scene.enterVR();
+                    setStatus("VR mode requested. Use your controllers to point and click.");
+                }
+            } catch (error) {
+                setStatus("VR could not start. Try a WebXR-compatible browser and a secure local or HTTPS page.");
+            }
+        });
+
+        // Laptop keyboard controls.
+        document.addEventListener("keydown", (event) => {
+            if (event.repeat) return;
+
+            const target = event.target;
+            if (
+                target &&
+                ["INPUT", "TEXTAREA", "SELECT", "BUTTON"].includes(target.tagName)
+            ) return;
+
+            const key = event.key.toLowerCase();
+
+            const keyboardMap = {
+                g: "NA",
+                h: "TIN",
+                j: "TA",
+                k: "GE",
+                d: "DHA",
+                f: "DHIN"
+            };
+
+            if (event.code === "Space") {
+                event.preventDefault();
+                playBol("TUN");
+            } else if (keyboardMap[key]) {
+                playBol(keyboardMap[key]);
+            } else if (event.key === "Enter") {
+                startRhythm();
+            } else if (event.key === "Escape") {
+                stopRhythm();
+            }
+        });
+
+        scene.addEventListener("enter-vr", () => {
+            setStatus("VR active. Aim at a drum and press your controller trigger.");
+        });
+
+        scene.addEventListener("exit-vr", () => {
+            setStatus("Exited VR. Use the laptop controls or re-enter VR.");
+        });
+    </script>
+</body>
+
+</html>
